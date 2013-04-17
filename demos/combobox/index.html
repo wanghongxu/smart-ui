@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+		<link rel="stylesheet" href="../../themes/default/smart.ui.combobox.css" />
+		<script src="../../common-lib/jquery-1.9.1.js"></script>
+		<script src="../../common-lib/jquery-ui-1.10.2.custom.js"></script>
+		<script src="../../src/smart.ui.combobox.js"></script>
+		
+		<style>
+			body{
+				font:normal normal 14px/20px arial,sans-serif;
+			}
+		</style>
+		
+		<script>
+			$(function(){
+				
+				var datasTest = createTestData();
+			
+				$("#cmbTest1").combobox({
+					datas: datasTest,
+					textField: "name",
+					valueField: "value",
+					width: "290px",
+					isMultiSelect: true,
+					
+					select : function(event, ui){
+						alert(ui.item.html());
+					}
+				});
+				
+				
+			
+
+				function createTestData(){
+					var datasTest = [];
+					for(var i=0; i<10; i++){
+						var dataTest = {
+							name: "item" + i,
+							value: i
+						}
+						datasTest.push(dataTest);
+					}
+					return datasTest;
+				}
+			
+			})
+		</script>
+	</head>
+	<body>
+		<div id="cmbTest1"></div>
+
+	</body>
+</html>
