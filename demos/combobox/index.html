@@ -23,7 +23,9 @@
 					valueField: "value",
 					width: "290px",
 					isMultiSelect: true,
-					
+					textFormatter: function(item){
+						return item['name'] + "(" + item['value'] + ")";
+					},
 					select : function(event, ui){
 						alert(ui.item.html());
 					}

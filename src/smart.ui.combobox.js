@@ -1,7 +1,7 @@
 (function( $, undefined ){
 
 $.widget("smart-ui.combobox", {
-  verson: "0.1",
+	verson: "0.1",
 	options: {
 		datas: [],
 		textField: "",
@@ -10,7 +10,9 @@ $.widget("smart-ui.combobox", {
 		isEditable: false,
 		isMultiSelect: false,
 		defaultSelecItem: {value: 0, text: ""},
-		textFormatter: null,
+		textFormatter: function(item){
+			return item[this.textField];
+		},
 		disabled: false,
 		
 		// callbacks
@@ -82,7 +84,7 @@ $.widget("smart-ui.combobox", {
 		var dataArray = self.options.datas;
 		if(dataArray != null && dataArray.length > 0){
 			for(var i=0; i<dataArray.length; i++){
-				var domItem = "<li value='" + dataArray[i][self.options.valueField] + "'>" + dataArray[i][self.options.textField]  + "</li>";
+				var domItem = "<li value='" + dataArray[i][self.options.valueField] + "'>" + this.options.textFormatter(dataArray[i])  + "</li>";
 				self.itemList.append(domItem);
 			}
 			$(self.itemList).find("li")
