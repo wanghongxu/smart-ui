@@ -7,8 +7,11 @@ $.widget("smart-ui.combobox", {
 		textField: "",
 		valueField: "",
 		width: "150px",
-		editable: false,
+		isEditable: false,
 		isMultiSelect: false,
+		defaultSelecItem: {value: 0, text: ""},
+		textFormatter: null,
+		disabled: false,
 		
 		// callbacks
 		select: null
@@ -40,7 +43,7 @@ $.widget("smart-ui.combobox", {
 		//初始化输入框		
 		this.comboboxText = $("<input type='text'>")
 			.addClass("combobox-text");
-		if(!self.options.editable){
+		if(!self.options.isEditable){
 			this.comboboxText.attr("readonly", "readonly")
 			.addClass("combobox-text-readonly")
 			.focus(function(){
