@@ -23,11 +23,13 @@ $.widget("smart-ui.combobox", {
 		var self = this;
 		var domComboboxTextAndTrigger = "<div class='combobox-text-wrap'><table style='width: 100%;' cellspacing='0' cellpadding='0'><tr><td style='width:100%;'></td><td style='width:22px;'></td></tr></table></div>";
 
+		var itemListHeight = this.options.datas.length*22 >= 180 ? 180 : this.options.datas.length*22 + 2;
 		this.itemListWrap = $("<div>")
 			.addClass("combobox-itemlist-wrap")
 			.css({
 				//下拉列表与控件同宽
-				width:self.options.width
+				width:self.options.width,
+				height:itemListHeight
 			});
 		this.itemList = $("<ul>")
 			.addClass("combobox-itemlist")
@@ -74,6 +76,8 @@ $.widget("smart-ui.combobox", {
 				self.itemListWrap.hide();
 			}
 		});
+		
+		this._selectedItems = [];
 	},
 	
 	/**
@@ -90,6 +94,7 @@ $.widget("smart-ui.combobox", {
 			$(self.itemList).find("li")
 			.click(function(event){
 				var item = $(this);
+				var originalValue = $(this).attr("value");
 				var originalText = $(this).html();
 				if(self.options.isMultiSelect && $(this).is(".item-selected")){
 				
@@ -99,7 +104,7 @@ $.widget("smart-ui.combobox", {
 					var spliterAfter = originalText + ", " ;
 					
 					self.comboboxText.val( self.comboboxText.val().replace(eval("/"+spliterAfter+"|"+spliterBefore+"|"+originalText+"/"),"") )
-										
+					self._removeItem({value:originalValue, text:originalText});					
 				}else if(self.options.isMultiSelect && !$(this).is(".item-selected")){
 					$(this).addClass("item-selected");
 					if(self.comboboxText.val() != null && self.comboboxText.val().length > 0){
@@ -107,10 +112,12 @@ $.widget("smart-ui.combobox", {
 					}else{
 						self.comboboxText.val(originalText);
 					}
+					self._addItem({value:originalValue, text:originalText});
 				}else{
 					$(self.itemList).find(".item-selected").removeClass("item-selected");
 					$(this).addClass("item-selected");
 					self.comboboxText.val(originalText);
+					self._addItem({value:originalValue, text:originalText});
 					self.itemListWrap.hide();
 				}
 				
@@ -123,6 +130,54 @@ $.widget("smart-ui.combobox", {
 			.mouseout(function(){
 				$(this).removeClass("item-over")
 			})
+		}
+	},
+	
+	_addItem : function(item){
+		if(!this.options.isMultiSelect){
+			this._selectedItems = [];
+		}
+		this._selectedItems.push(item);
+	},
+	
+	_removeItem : function(item){
+		if(this.options.isMultiSelect){
+			var self = this;
+			$.each(this._selectedItems, function(i, ele){
+				if(ele.value == item.value){
+					self._selectedItems.splice(i,1);
+					return false;
+				}
+			})
+		}else{
+			this._selectedItems = [];
+		}
+	},
+	
+	selectedItems : function(){
+		return this._selectedItems;
+	},
+	
+	selectedValues : function(){
+		var values = []
+		if(this._selectedItems.length > 0){
+			for(var i=0; i<this._selectedItems.length; i++){
+				var item = this._selectedItems[i];
+				values.push(item.value);
+			}
+		}
+		return values;
+	},
+	
+	selectedValue : function(){
+		if(!self.options.isMultiSelect && this._selectedItems.length == 1){
+			return this._selectedItems[0].value;
+		}
+	},
+	
+	selectedItem : function(){
+		if(!self.options.isMultiSelect && this._selectedItems.length == 1){
+			return this._selectedItems[0];
 		}
 	}
 

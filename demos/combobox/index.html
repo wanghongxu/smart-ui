@@ -23,20 +23,25 @@
 					valueField: "value",
 					width: "290px",
 					isMultiSelect: true,
-					textFormatter: function(item){
+					/*textFormatter: function(item){
 						return item['name'] + "(" + item['value'] + ")";
-					},
-					select : function(event, ui){
+					}*/
+					/*select : function(event, ui){
 						alert(ui.item.html());
-					}
+					}*/
 				});
+				
+				$("#btnGetSelectedValues").click(function(){
+					var values = $("#cmbTest1").combobox("selectedValues");
+					alert(values.join(","));
+				})
 				
 				
 			
 
 				function createTestData(){
 					var datasTest = [];
-					for(var i=0; i<10; i++){
+					for(var i=0; i<3; i++){
 						var dataTest = {
 							name: "item" + i,
 							value: i
@@ -51,6 +56,7 @@
 	</head>
 	<body>
 		<div id="cmbTest1"></div>
-
+		<input type="button" id="btnGetSelectedValues" value="GetSelectedValues" />
+		
 	</body>
 </html>
