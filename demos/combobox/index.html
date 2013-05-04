@@ -23,6 +23,7 @@
 					valueField: "value",
 					width: "290px",
 					isMultiSelect: true,
+					defaultSelectValue: 2 //[1,2]
 					/*textFormatter: function(item){
 						return item['name'] + "(" + item['value'] + ")";
 					}*/
@@ -36,7 +37,14 @@
 					alert(values.join(","));
 				})
 				
-				
+				$("#btnDisable").click(function(){
+					if( $("#cmbTest1").combobox("option", "disabled") ){
+						$("#cmbTest1").combobox("enable");
+					}else{
+						$("#cmbTest1").combobox("disable");
+					}
+					
+				})
 			
 
 				function createTestData(){
@@ -57,6 +65,6 @@
 	<body>
 		<div id="cmbTest1"></div>
 		<input type="button" id="btnGetSelectedValues" value="GetSelectedValues" />
-		
+		<input type="button" id="btnDisable" value="Toggle disable/enable" />
 	</body>
 </html>
