@@ -15,27 +15,30 @@
 		<script>
 			$(function(){
 				
-				var datasTest = createTestData();
-			
+				var datasTest = createTestData(10);
+				var datasTest1 = createTestData(6);
+				
+				
+				
 				$("#cmbTest1").combobox({
-					datas: datasTest,
+					items: datasTest,
 					textField: "name",
 					valueField: "value",
 					width: "290px",
 					isMultiSelect: true,
-					defaultSelectValue: 2 //[1,2]
+					defaultSelectValue: 0, //[1,2]
 					/*textFormatter: function(item){
 						return item['name'] + "(" + item['value'] + ")";
 					}*/
-					/*select : function(event, ui){
+					onSelect : function(event, ui){
 						alert(ui.item.html());
-					}*/
+					}
 				});
 				
 				$("#btnGetSelectedValues").click(function(){
 					var values = $("#cmbTest1").combobox("selectedValues");
 					alert(values.join(","));
-				})
+				});
 				
 				$("#btnDisable").click(function(){
 					if( $("#cmbTest1").combobox("option", "disabled") ){
@@ -44,12 +47,33 @@
 						$("#cmbTest1").combobox("disable");
 					}
 					
-				})
+				});
+				
+				$("#btnClearItems").click(function(){
+					$("#cmbTest1").combobox("clearItems");
+				});
 			
-
-				function createTestData(){
+				$("#btnClearSelected").click(function(){
+					$("#cmbTest1").combobox("clearSelected");
+				});
+				
+				$("#btnSelect").click(function(){
+					$("#cmbTest1").combobox("select", [1, 2, 3]);
+				});
+				
+				$("#btnUnSelect").click(function(){
+					$("#cmbTest1").combobox("unSelect", [2, 3]);
+				});
+				
+				$("#btnSetItems").click(function(){
+					$("#cmbTest1").combobox("setItems", datasTest1);
+				});
+				
+				
+			
+				function createTestData(count){
 					var datasTest = [];
-					for(var i=0; i<3; i++){
+					for(var i=0; i<count; i++){
 						var dataTest = {
 							name: "item" + i,
 							value: i
@@ -66,5 +90,12 @@
 		<div id="cmbTest1"></div>
 		<input type="button" id="btnGetSelectedValues" value="GetSelectedValues" />
 		<input type="button" id="btnDisable" value="Toggle disable/enable" />
+		<input type="button" id="btnSetItems" value="Set Items" />
+		<input type="button" id="btnClearItems" value="Clear Items" />
+		<input type="button" id="btnClearSelected" value="Clear Selected" />
+		<input type="button" id="btnSelect" value="Select item1, item2 and item3" />
+		<input type="button" id="btnUnSelect" value="Unselect item2, item3" />
+		
+		
 	</body>
 </html>

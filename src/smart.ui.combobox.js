@@ -3,7 +3,7 @@
 $.widget("smart-ui.combobox", {
 	verson: "0.1",
 	options: {
-		datas: [],
+		items: [],
 		textField: "",
 		valueField: "",
 		width: "150px",
@@ -16,7 +16,7 @@ $.widget("smart-ui.combobox", {
 		disabled: false,
 		
 		// callbacks
-		select: null
+		onSelect: null
 	},
 	
 	_create: function(){
@@ -25,7 +25,7 @@ $.widget("smart-ui.combobox", {
 		
 		var domComboboxTextAndTrigger = "<div class='combobox-text-wrap'><table style='width: 100%;' cellspacing='0' cellpadding='0'><tr><td style='width:100%;'></td><td style='width:22px;'></td></tr></table></div>";
 
-		var itemListHeight = this.options.datas.length*22 >= 180 ? 180 : this.options.datas.length*22 + 2;
+		var itemListHeight = this._calculateItemListHeight();
 		this.itemListWrap = $("<div>")
 			.addClass("combobox-itemlist-wrap")
 			.css({
@@ -92,7 +92,7 @@ $.widget("smart-ui.combobox", {
 	  */
 	_createItemList : function(){
 		var self = this;
-		var dataArray = self.options.datas;
+		var dataArray = self.options.items;
 		if(dataArray != null && dataArray.length > 0){
 			//获取默认选择的子项目
 			var selectedValue = null;
@@ -115,7 +115,8 @@ $.widget("smart-ui.combobox", {
 					}else{
 						this.comboboxText.val(this.options.textFormatter(dataArray[i]));
 					}
-					self._addItem({value:dataArray[i][self.options.valueField], text:this.options.textFormatter(dataArray[i])})
+					self._addItem({value:dataArray[i][self.options.valueField], text:this.options.textFormatter(dataArray[i])});
+					self._trigger( "onSelect", null, {item: $(domItem)});
 				}else{
 					$(domItem).appendTo(this.itemList);
 				}
@@ -154,7 +155,7 @@ $.widget("smart-ui.combobox", {
 					self.itemListWrap.hide();
 				}
 				
-				self._trigger( "select", event, {item: item});
+				self._trigger( "onSelect", event, {item: item});
 
 			})
 			.mouseover(function(){
@@ -162,7 +163,9 @@ $.widget("smart-ui.combobox", {
 			})
 			.mouseout(function(){
 				$(this).removeClass("item-over")
-			})
+			});
+			
+			this.itemListWrap.css({height:this._calculateItemListHeight()});
 		}
 	},
 	
@@ -196,6 +199,10 @@ $.widget("smart-ui.combobox", {
 		}
 	},
 	
+	_calculateItemListHeight : function(){
+		return this.options.items.length * 22 >= 180 ? 180 : this.options.items.length*22 + 2;
+	},
+	
 	selectedItems : function(){
 		return this._selectedItems;
 	},
@@ -221,7 +228,81 @@ $.widget("smart-ui.combobox", {
 		if(!self.options.isMultiSelect && this._selectedItems.length == 1){
 			return this._selectedItems[0];
 		}
+	},
+	
+	//选项设置操作
+	select : function(values){
+		var self = this;
+		this.itemList.find(".item-selected").removeClass("item-selected");
+		this.comboboxText.val("");
+		this._selectedItems = [];
+		
+		$.each(this.itemList.find("li"),function(){
+			if( self._isInArray( values, parseInt($(this).attr("value")) )){
+				$(this).addClass("item-selected");
+				
+				var item = {};
+				item[self.options.valueField] = parseInt($(this).attr("value"));
+				item[self.options.textField] = $(this).text();
+				
+				if(self.comboboxText.val() != null && self.comboboxText.val().length > 0){
+					self.comboboxText.val(self.comboboxText.val() + ", " + self.options.textFormatter(item));
+				}else{
+					self.comboboxText.val(self.options.textFormatter(item));
+				}
+				self._addItem({value:item[self.options.valueField], text:self.options.textFormatter(item)});
+				self._trigger( "onSelect", null, {item: $(this)});
+			}
+		});
+		
+	},
+	
+	unSelect : function(values){
+		var self = this;
+		$.each(this.itemList.find("li.item-selected"),function(){
+			if( self._isInArray( values, parseInt($(this).attr("value")) )){
+				$(this).removeClass("item-selected");
+				self._removeItem({value: parseInt($(this).attr("value"))});
+				var originalText = $(this).text();
+				var spliterBefore = ", " + originalText;
+				var spliterAfter = originalText + ", " ;
+				
+				self.comboboxText.val( self.comboboxText.val().replace(eval("/"+spliterAfter+"|"+spliterBefore+"|"+originalText+"/"),"") );
+			}
+		});
+	},
+	
+	clearSelected : function(){
+		this._selectedItems = [];
+		this.comboboxText.val("");
+		this.itemList.find(".item-selected").removeClass("item-selected");
+	},
+	
+	//选项的维护方法，重新设值，增加选项，移除选项，清空所有选项
+	setItems : function(items){
+		this.options.items = items;
+		this._selectedItems = [];
+		this.itemList.empty();
+		this.comboboxText.val("");
+		this._createItemList();
+	},
+	
+	addItems : function(items){
+	
+	},
+	
+	removeItems : function(items){
+
+	},
+	
+	clearItems : function(){
+		this.options.items = [];
+		this._selectedItems = [];
+		this.itemList.empty();
+		this.comboboxText.val("");
+		this.itemListWrap.css({height:this._calculateItemListHeight()});
 	}
+	
 
 });
 
