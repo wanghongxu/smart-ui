@@ -21,7 +21,13 @@ $.widget("smart-ui.combobox", {
 	
 	_create: function(){
 		var self = this;
-		this._selectedItems = [];
+		//存储了所有item的hash列表对象
+		this._items = {};
+		$.each(this.options.items, function(){
+			var item = this;
+			self[item[self.options.valueField]] = item[self.options.textField];
+		})
+		this._selectedItems = {};
 		
 		var domComboboxTextAndTrigger = "<div class='combobox-text-wrap'><table style='width: 100%;' cellspacing='0' cellpadding='0'><tr><td style='width:100%;'></td><td style='width:22px;'></td></tr></table></div>";
 
@@ -86,7 +92,7 @@ $.widget("smart-ui.combobox", {
 		
 		
 	},
-	
+		
 	/**
 	  *构造数据内容
 	  */
@@ -95,34 +101,28 @@ $.widget("smart-ui.combobox", {
 		var dataArray = self.options.items;
 		if(dataArray != null && dataArray.length > 0){
 			//获取默认选择的子项目
-			var selectedValue = null;
+			var defaultSelectValues = null;
 			if(this.options.defaultSelectValue != null ){
 			    if(this.options.defaultSelectValue instanceof Array){
-					selectedValue = this.options.defaultSelectValue;
+					defaultSelectValues = this.options.defaultSelectValue;
 				}else{
-					selectedValue = [this.options.defaultSelectValue];
+					defaultSelectValues = [this.options.defaultSelectValue];
 				}
-
 			}
 		
 			for(var i=0; i<dataArray.length; i++){
-				var domItem = "<li value='" + dataArray[i][self.options.valueField] + "'>" + this.options.textFormatter(dataArray[i])  + "</li>";
-				
-				if( this._isInArray( selectedValue, dataArray[i][self.options.valueField] )){
-					$(domItem).addClass("item-selected").appendTo(self.itemList);
-					if(this.comboboxText.val() != null && this.comboboxText.val().length > 0){
-						this.comboboxText.val(this.comboboxText.val() + ", " + this.options.textFormatter(dataArray[i]));
-					}else{
-						this.comboboxText.val(this.options.textFormatter(dataArray[i]));
-					}
-					self._addItem({value:dataArray[i][self.options.valueField], text:this.options.textFormatter(dataArray[i])});
-					self._trigger( "onSelect", null, {item: $(domItem)});
-				}else{
-					$(domItem).appendTo(this.itemList);
+				var domStr = "<li value='" + dataArray[i][self.options.valueField] + "'>" + this.options.textFormatter(dataArray[i])  + "</li>";
+				var domItem = $(domStr).appendTo(this.itemList);
+				if( $.inArray(dataArray[i][self.options.valueField], defaultSelectValues) != -1 ){
+					domItem.addClass("item-selected");
+					
+					this._addToCombobox(this.options.textFormatter(dataArray[i]));
+					this._addToSelectedItems({value:dataArray[i][self.options.valueField], text:this.options.textFormatter(dataArray[i])});
+					
+					this._trigger( "onSelect", null, {item: $(domStr)});
 				}
-				
 			}
-			$(self.itemList).find("li")
+			$(this.itemList).find("li")
 			.click(function(event){
 				if( self.options.disabled )
 					return;
@@ -134,24 +134,20 @@ $.widget("smart-ui.combobox", {
 				
 					$(this).removeClass("item-selected");
 					
-					var spliterBefore = ", " + originalText;
-					var spliterAfter = originalText + ", " ;
-					
-					self.comboboxText.val( self.comboboxText.val().replace(eval("/"+spliterAfter+"|"+spliterBefore+"|"+originalText+"/"),"") )
-					self._removeItem({value:originalValue, text:originalText});					
+					self._removeFromCombobox(originalText);
+
+					self._removeFromSelectedItems({value:originalValue, text:originalText});					
 				}else if(self.options.isMultiSelect && !$(this).is(".item-selected")){
 					$(this).addClass("item-selected");
-					if(self.comboboxText.val() != null && self.comboboxText.val().length > 0){
-						self.comboboxText.val(self.comboboxText.val() + ", " + originalText);
-					}else{
-						self.comboboxText.val(originalText);
-					}
-					self._addItem({value:originalValue, text:originalText});
+					
+					self._addToCombobox(originalText);
+
+					self._addToSelectedItems({value:originalValue, text:originalText});
 				}else{
 					$(self.itemList).find(".item-selected").removeClass("item-selected");
 					$(this).addClass("item-selected");
 					self.comboboxText.val(originalText);
-					self._addItem({value:originalValue, text:originalText});
+					self._addToSelectedItems({value:originalValue, text:originalText});
 					self.itemListWrap.hide();
 				}
 				
@@ -169,34 +165,27 @@ $.widget("smart-ui.combobox", {
 		}
 	},
 	
-	_isInArray : function(ary, ele){
-		for(var i=0; i<ary.length; i++){
-			if(ary[i] == ele){
-				return true;
-			}
-		}
-		return false;
-	},
-	
-	_addItem : function(item){
-		if(!this.options.isMultiSelect){
-			this._selectedItems = [];
-		}
-		this._selectedItems.push(item);
-	},
-	
-	_removeItem : function(item){
-		if(this.options.isMultiSelect){
-			var self = this;
-			$.each(this._selectedItems, function(i, ele){
-				if(ele.value == item.value){
-					self._selectedItems.splice(i,1);
-					return false;
-				}
-			})
+	_addToCombobox : function(newText){
+		if(this.comboboxText.val() != null && this.comboboxText.val().length > 0){
+			this.comboboxText.val(this.comboboxText.val() + ", " + newText);
 		}else{
-			this._selectedItems = [];
+			this.comboboxText.val(newText);
 		}
+	},
+	
+	_removeFromCombobox : function(originalText){
+		var spliterBefore = ", " + originalText;
+		var spliterAfter = originalText + ", ";
+		
+		this.comboboxText.val( this.comboboxText.val().replace(eval("/"+spliterAfter+"|"+spliterBefore+"|"+originalText+"/"),"") );
+	},
+	
+	_addToSelectedItems : function(item){
+		this._selectedItems[item.value] = item.text;
+	},
+	
+	_removeFromSelectedItems : function(item){
+		delete this._selectedItems[item.value];
 	},
 	
 	_calculateItemListHeight : function(){
@@ -209,23 +198,29 @@ $.widget("smart-ui.combobox", {
 	
 	selectedValues : function(){
 		var values = []
-		if(this._selectedItems.length > 0){
-			for(var i=0; i<this._selectedItems.length; i++){
-				var item = this._selectedItems[i];
-				values.push(item.value);
+		if(this._selectedItems != null ){
+			for(var val in this._selectedItems){
+				values.push(val);
 			}
 		}
 		return values;
 	},
 	
 	selectedValue : function(){
-		if(!self.options.isMultiSelect && this._selectedItems.length == 1){
-			return this._selectedItems[0].value;
+		var values = this.selectedValues();
+		if(!this.options.isMultiSelect && values.length == 1){
+			return values[0];
 		}
 	},
 	
 	selectedItem : function(){
-		if(!self.options.isMultiSelect && this._selectedItems.length == 1){
+		if(!self.options.isMultiSelect && this._selectedItems != null){
+			for(var val in this._selectedItems){
+				var item = {};
+				item[self.options.valueField] = val;
+				item[self.options.textField] = this._selectedItems[val];
+				return item;
+			}
 			return this._selectedItems[0];
 		}
 	},
@@ -235,22 +230,18 @@ $.widget("smart-ui.combobox", {
 		var self = this;
 		this.itemList.find(".item-selected").removeClass("item-selected");
 		this.comboboxText.val("");
-		this._selectedItems = [];
+		this._selectedItems = {};
 		
 		$.each(this.itemList.find("li"),function(){
-			if( self._isInArray( values, parseInt($(this).attr("value")) )){
+			if( $.inArray(parseInt($(this).attr("value")), values) != -1 ){
 				$(this).addClass("item-selected");
 				
 				var item = {};
 				item[self.options.valueField] = parseInt($(this).attr("value"));
 				item[self.options.textField] = $(this).text();
+				self._addToCombobox(self.options.textFormatter(item));
+				self._addToSelectedItems({value:item[self.options.valueField], text:self.options.textFormatter(item)});
 				
-				if(self.comboboxText.val() != null && self.comboboxText.val().length > 0){
-					self.comboboxText.val(self.comboboxText.val() + ", " + self.options.textFormatter(item));
-				}else{
-					self.comboboxText.val(self.options.textFormatter(item));
-				}
-				self._addItem({value:item[self.options.valueField], text:self.options.textFormatter(item)});
 				self._trigger( "onSelect", null, {item: $(this)});
 			}
 		});
@@ -260,20 +251,16 @@ $.widget("smart-ui.combobox", {
 	unSelect : function(values){
 		var self = this;
 		$.each(this.itemList.find("li.item-selected"),function(){
-			if( self._isInArray( values, parseInt($(this).attr("value")) )){
+			if( $.inArray(parseInt($(this).attr("value")), values) != -1 ){
 				$(this).removeClass("item-selected");
-				self._removeItem({value: parseInt($(this).attr("value"))});
-				var originalText = $(this).text();
-				var spliterBefore = ", " + originalText;
-				var spliterAfter = originalText + ", " ;
-				
-				self.comboboxText.val( self.comboboxText.val().replace(eval("/"+spliterAfter+"|"+spliterBefore+"|"+originalText+"/"),"") );
+				self._removeFromSelectedItems({value: parseInt($(this).attr("value"))});
+				self._removeFromCombobox($(this).text());
 			}
 		});
 	},
 	
 	clearSelected : function(){
-		this._selectedItems = [];
+		this._selectedItems = {};
 		this.comboboxText.val("");
 		this.itemList.find(".item-selected").removeClass("item-selected");
 	},
