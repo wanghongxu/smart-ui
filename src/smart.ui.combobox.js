@@ -89,8 +89,7 @@ $.widget("smart-ui.combobox", {
 				self.itemListWrap.hide();
 			}
 		});
-		
-		
+
 	},
 		
 	/**
@@ -110,55 +109,59 @@ $.widget("smart-ui.combobox", {
 				}
 			}
 		
+			var liListStr = "";
 			for(var i=0; i<dataArray.length; i++){
-				var domStr = "<li value='" + dataArray[i][self.options.valueField] + "'>" + this.options.textFormatter(dataArray[i])  + "</li>";
-				var domItem = $(domStr).appendTo(this.itemList);
+				var classItemSelected = "";
 				if( $.inArray(dataArray[i][self.options.valueField], defaultSelectValues) != -1 ){
-					domItem.addClass("item-selected");
+					classItemSelected = " class='item-selected' ";
 					
 					this._addToCombobox(this.options.textFormatter(dataArray[i]));
 					this._addToSelectedItems({value:dataArray[i][self.options.valueField], text:this.options.textFormatter(dataArray[i])});
 					
-					this._trigger( "onSelect", null, {item: $(domStr)});
+					//this._trigger( "onSelect", null, {item: $(domStr)});
 				}
+				var liStr = ["<li value='", dataArray[i][self.options.valueField] , "' " , classItemSelected , ">" , 
+							this.options.textFormatter(dataArray[i])  , "</li>"].join("");
+				liListStr += liStr;
 			}
-			$(this.itemList).find("li")
-			.click(function(event){
-				if( self.options.disabled )
-					return;
-				
-				var item = $(this);
-				var originalValue = $(this).attr("value");
-				var originalText = $(this).html();
-				if(self.options.isMultiSelect && $(this).is(".item-selected")){
-				
-					$(this).removeClass("item-selected");
-					
-					self._removeFromCombobox(originalText);
+			$(liListStr).appendTo(this.itemList);
 
-					self._removeFromSelectedItems({value:originalValue, text:originalText});					
-				}else if(self.options.isMultiSelect && !$(this).is(".item-selected")){
-					$(this).addClass("item-selected");
+			$(this.itemList).click(function(e){
+				if(e.target && e.target.tagName == 'LI'){
+					if( self.options.disabled )
+						return;
 					
-					self._addToCombobox(originalText);
-
-					self._addToSelectedItems({value:originalValue, text:originalText});
-				}else{
-					$(self.itemList).find(".item-selected").removeClass("item-selected");
-					$(this).addClass("item-selected");
-					self.comboboxText.val(originalText);
-					self._addToSelectedItems({value:originalValue, text:originalText});
-					self.itemListWrap.hide();
+					var item = $(e.target);
+					var originalValue = item.attr("value");
+					var originalText = item.html();
+					if(self.options.isMultiSelect && item.is(".item-selected")){
+						item.removeClass("item-selected");
+						self._removeFromCombobox(originalText);
+						self._removeFromSelectedItems({value:originalValue, text:originalText});	
+					}else if(self.options.isMultiSelect && !item.is(".item-selected")){
+						item.addClass("item-selected");
+						self._addToCombobox(originalText);
+						self._addToSelectedItems({value:originalValue, text:originalText});
+					}else{
+						$(self.itemList).find(".item-selected").removeClass("item-selected");
+						item.addClass("item-selected");
+						self.comboboxText.val(originalText);
+						self._addToSelectedItems({value:originalValue, text:originalText});
+						self.itemListWrap.hide();
+					}
+					
+					self._trigger( "onSelect", e, {"item": item});
 				}
-				
-				self._trigger( "onSelect", event, {item: item});
-
 			})
-			.mouseover(function(){
-				$(this).addClass("item-over")
+			.mouseover(function(e){
+				if(e.target && e.target.tagName == 'LI'){
+					$(e.target).addClass("item-over")
+				}
 			})
-			.mouseout(function(){
-				$(this).removeClass("item-over")
+			.mouseout(function(e){
+				if(e.target && e.target.tagName == 'LI'){
+					$(e.target).removeClass("item-over")
+				}
 			});
 			
 			this.itemListWrap.css({height:this._calculateItemListHeight()});
@@ -290,7 +293,6 @@ $.widget("smart-ui.combobox", {
 		this.itemListWrap.css({height:this._calculateItemListHeight()});
 	}
 	
-
 });
 
 }( jQuery ));
