@@ -9,7 +9,6 @@ $.widget("smart-ui.combobox", {
 		width: "150px",
 		isEditable: false,
 		isMultiSelect: false,
-		defaultSelectValue: null,
 		textFormatter: function(item){
 			return item[this.textField];
 		},
@@ -109,33 +108,7 @@ $.widget("smart-ui.combobox", {
 		    dataArray = self.options.items;
 
 		if(dataArray != null && dataArray.length > 0){
-			//获取默认选择的子项目
-			var defaultSelectValues = null;
-			if(this.options.defaultSelectValue != null ){
-			    if(this.options.defaultSelectValue instanceof Array){
-					defaultSelectValues = this.options.defaultSelectValue;
-				}else{
-					defaultSelectValues = [this.options.defaultSelectValue];
-				}
-			}
-
-			var liListStr = "";
-			for(var i=0; i<dataArray.length; i++){
-				var classItemSelected = "";
-				if( $.inArray(dataArray[i][self.options.valueField], defaultSelectValues) != -1 ){
-					classItemSelected = " class='item-selected' ";
-
-					this._addToCombobox(this.options.textFormatter(dataArray[i]));
-					this._addToSelectedItems({value:dataArray[i][self.options.valueField],
-                            text:this.options.textFormatter(dataArray[i])});
-
-					//this._trigger( "onSelect", null, {item: $(domStr)});
-				}
-				var liStr = [ "<li value='", dataArray[i][self.options.valueField] , "' " , classItemSelected , ">" ,
-							this.options.textFormatter(dataArray[i])  , "</li>" ].join("");
-				liListStr += liStr;
-			}
-			$(liListStr).appendTo(this.itemList);
+            this.addItems(dataArray);
 
 			$(this.itemList).click(function(e){
 				if(e.target && e.target.tagName == 'LI'){
