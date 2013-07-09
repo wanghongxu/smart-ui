@@ -50,8 +50,6 @@
 		border: 1px solid #ccc;
 		background-color: #FFFFFF;
 		position: absolute;
-		left:8px;
-		top:31px;
 		overflow: auto;
 		display:none;
 	}

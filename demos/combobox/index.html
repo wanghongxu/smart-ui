@@ -19,8 +19,8 @@
 				
 				var datasTest = createTestData(10);
 				var datasTest1 = createTestData(6);
-				
-				
+                var datasTest2 = createTestData(1000);
+                var datasTest3 = createTestData(20);
 				
 				$("#cmbTest1").combobox({
 					items: datasTest,
@@ -35,6 +35,17 @@
 						alert(ui.item.html());
 					}
 				});
+
+                $("#cmbTest2").combobox({
+                    items: datasTest2,
+                    textField: "name",
+                    valueField: "value",
+                    width: "100px",
+                    isMultiSelect: false
+                    /*textFormatter: function(item){
+                     return item['name'] + "(" + item['value'] + ")";
+                     }*/
+                });
 				
 				$("#btnGetSelectedValues").click(function(){
 					var values = $("#cmbTest1").combobox("selectedValues");
@@ -88,7 +99,7 @@
 		</script>
 	</head>
 	<body>
-		<div id="cmbTest1"></div>
+		<div id="cmbTest1"></div><div id="cmbTest2"></div>
 		<input type="button" id="btnGetSelectedValues" value="GetSelectedValues" />
 		<input type="button" id="btnDisable" value="Toggle disable/enable" />
 		<input type="button" id="btnSetItems" value="Set Items" />
@@ -96,7 +107,9 @@
 		<input type="button" id="btnClearSelected" value="Clear Selected" />
 		<input type="button" id="btnSelect" value="Select item1, item2 and item3" />
 		<input type="button" id="btnUnSelect" value="Unselect item2, item3" />
-		
-		
+
+
+
+        <div id="cmbTest3"></div>
 	</body>
 </html>

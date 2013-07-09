@@ -29,9 +29,7 @@ $.widget("smart-ui.combobox", {
 		this._selectedItems = {};
 
         this._createContainerOfWidget();
-
         this._createInputAndDropDownButton();
-
         this._createItemList();
 	},
 
@@ -43,22 +41,26 @@ $.widget("smart-ui.combobox", {
                 "<tr><td style='width:100%;'></td><td style='width:22px;'></td></tr>" +
                 "</table></div>";
 
+        this.element.addClass("combobox-container")
+            .css({width:this.options.width})
+            .append(containerOfInputAndDropDownButton)
+
         var itemListHeight = this._calculateItemListHeight();
+
+        var posContainer = this.element.position();
         this.containerOfItemList = $("<div>")
             .addClass("combobox-itemlist-wrap")
             .css({
                 //下拉列表与控件同宽
+                left: posContainer.left + "px",
+                top: (posContainer.top + 22) + "px",
                 width:self.options.width,
                 height:itemListHeight
             });
         this.itemList = $("<ul>")
             .addClass("combobox-itemlist")
             .appendTo(this.containerOfItemList);
-
-        this.element.addClass("combobox-container")
-            .css({width:this.options.width})
-            .append(containerOfInputAndDropDownButton)
-            .append(this.containerOfItemList);
+        this.element.append(this.containerOfItemList);
     },
 
     _createInputAndDropDownButton : function(){
