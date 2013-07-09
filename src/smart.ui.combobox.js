@@ -26,78 +26,88 @@ $.widget("smart-ui.combobox", {
 		$.each(this.options.items, function(){
 			var item = this;
 			self[item[self.options.valueField]] = item[self.options.textField];
-		})
+		});
 		this._selectedItems = {};
-		
-		var domComboboxTextAndTrigger = "<div class='combobox-text-wrap'><table style='width: 100%;' cellspacing='0' cellpadding='0'><tr><td style='width:100%;'></td><td style='width:22px;'></td></tr></table></div>";
 
-		var itemListHeight = this._calculateItemListHeight();
-		this.itemListWrap = $("<div>")
-			.addClass("combobox-itemlist-wrap")
-			.css({
-				//下拉列表与控件同宽
-				width:self.options.width,
-				height:itemListHeight
-			});
-		this.itemList = $("<ul>")
-			.addClass("combobox-itemlist")
-			.appendTo(this.itemListWrap);
+        this._createContainerOfWidget();
 
-		this.element.addClass("combobox-container")
-			.css({width:this.options.width})
-			.append(domComboboxTextAndTrigger)
-			.append(this.itemListWrap);
+        this._createInputAndDropDownButton();
 
-		var textAndTriggerWrap = this.element.find(".combobox-text-wrap td");
-		
-		//初始化输入框		
-		this.comboboxText = $("<input type='text'>")
-			.addClass("combobox-text");
-		if(!self.options.isEditable){
-			this.comboboxText.attr("readonly", "readonly")
-			.addClass("combobox-text-readonly")
-			.focus(function(){
-				$(this).blur();
-			});
-		}
-		this.comboboxText.appendTo(textAndTriggerWrap.eq(0));
-		
-		textAndTriggerWrap.click(function(){
-			if( self.options.disabled )
-				return;
-
-			if(self.itemListWrap.is(":hidden")){
-				self.itemListWrap.show();
-			}else{
-				self.itemListWrap.hide();
-			}
-		});
-		
-		this._createItemList();
-		
-		//初始化下拉按钮(倒三角)
-		this.comboboxTrigger = $("<div>")
-			.addClass("combobox-trigger")
-			.appendTo(textAndTriggerWrap.eq(1));
-
-		this.document.bind("mousedown", function( event ){
-			if( event.target == self.comboboxText.get(0) ||
-				event.target == self.comboboxTrigger.get(0) )
-				return;
-				
-			if( !$(event.target).closest(self.itemListWrap).length ){
-				self.itemListWrap.hide();
-			}
-		});
-
+        this._createItemList();
 	},
-		
-	/**
-	  *构造数据内容
-	  */
+
+    _createContainerOfWidget : function(){
+        var self = this;
+        var containerOfInputAndDropDownButton =
+                "<div class='combobox-text-wrap'>" +
+                "<table style='width: 100%;' cellspacing='0' cellpadding='0'>" +
+                "<tr><td style='width:100%;'></td><td style='width:22px;'></td></tr>" +
+                "</table></div>";
+
+        var itemListHeight = this._calculateItemListHeight();
+        this.containerOfItemList = $("<div>")
+            .addClass("combobox-itemlist-wrap")
+            .css({
+                //下拉列表与控件同宽
+                width:self.options.width,
+                height:itemListHeight
+            });
+        this.itemList = $("<ul>")
+            .addClass("combobox-itemlist")
+            .appendTo(this.containerOfItemList);
+
+        this.element.addClass("combobox-container")
+            .css({width:this.options.width})
+            .append(containerOfInputAndDropDownButton)
+            .append(this.containerOfItemList);
+    },
+
+    _createInputAndDropDownButton : function(){
+        var self = this;
+        var textAndTriggerWrap = this.element.find(".combobox-text-wrap td");
+
+        //初始化输入框
+        this.comboboxText = $("<input type='text'>")
+            .addClass("combobox-text");
+        if(!self.options.isEditable){
+            this.comboboxText.attr("readonly", "readonly")
+                .addClass("combobox-text-readonly")
+                .focus(function(){
+                    $(this).blur();
+                });
+        }
+        this.comboboxText.appendTo(textAndTriggerWrap.eq(0));
+
+        textAndTriggerWrap.click(function(){
+            if( self.options.disabled )
+                return;
+
+            if(self.containerOfItemList.is(":hidden")){
+                self.containerOfItemList.show();
+            }else{
+                self.containerOfItemList.hide();
+            }
+        });
+
+        //初始化下拉按钮(倒三角)
+        this.comboboxTrigger = $("<div>")	.addClass("combobox-trigger")
+            .appendTo(textAndTriggerWrap.eq(1));
+
+        this.document.bind("mousedown", function( event ){
+            if( event.target == self.comboboxText.get(0) ||
+                event.target == self.comboboxTrigger.get(0) )
+                return;
+
+            if( !$(event.target).closest(self.containerOfItemList).length ){
+                self.containerOfItemList.hide();
+            }
+        });
+    },
+
 	_createItemList : function(){
-		var self = this;
-		var dataArray = self.options.items;
+		var self = this,
+		    dataArray = self.options.items;
+
 		if(dataArray != null && dataArray.length > 0){
 			//获取默认选择的子项目
 			var defaultSelectValues = null;
@@ -108,20 +118,21 @@ $.widget("smart-ui.combobox", {
 					defaultSelectValues = [this.options.defaultSelectValue];
 				}
 			}
-		
+
 			var liListStr = "";
 			for(var i=0; i<dataArray.length; i++){
 				var classItemSelected = "";
 				if( $.inArray(dataArray[i][self.options.valueField], defaultSelectValues) != -1 ){
 					classItemSelected = " class='item-selected' ";
-					
+
 					this._addToCombobox(this.options.textFormatter(dataArray[i]));
-					this._addToSelectedItems({value:dataArray[i][self.options.valueField], text:this.options.textFormatter(dataArray[i])});
-					
+					this._addToSelectedItems({value:dataArray[i][self.options.valueField],
+                            text:this.options.textFormatter(dataArray[i])});
+
 					//this._trigger( "onSelect", null, {item: $(domStr)});
 				}
-				var liStr = ["<li value='", dataArray[i][self.options.valueField] , "' " , classItemSelected , ">" , 
-							this.options.textFormatter(dataArray[i])  , "</li>"].join("");
+				var liStr = [ "<li value='", dataArray[i][self.options.valueField] , "' " , classItemSelected , ">" ,
+							this.options.textFormatter(dataArray[i])  , "</li>" ].join("");
 				liListStr += liStr;
 			}
 			$(liListStr).appendTo(this.itemList);
@@ -147,7 +158,7 @@ $.widget("smart-ui.combobox", {
 						item.addClass("item-selected");
 						self.comboboxText.val(originalText);
 						self._addToSelectedItems({value:originalValue, text:originalText});
-						self.itemListWrap.hide();
+						self.containerOfItemList.hide();
 					}
 					
 					self._trigger( "onSelect", e, {"item": item});
@@ -164,7 +175,7 @@ $.widget("smart-ui.combobox", {
 				}
 			});
 			
-			this.itemListWrap.css({height:this._calculateItemListHeight()});
+			this.containerOfItemList.css({height:this._calculateItemListHeight()});
 		}
 	},
 	
@@ -180,7 +191,8 @@ $.widget("smart-ui.combobox", {
 		var spliterBefore = ", " + originalText;
 		var spliterAfter = originalText + ", ";
 		
-		this.comboboxText.val( this.comboboxText.val().replace(eval("/"+spliterAfter+"|"+spliterBefore+"|"+originalText+"/"),"") );
+		this.comboboxText.val( this.comboboxText.val().replace(
+                eval("/"+spliterAfter+"|"+spliterBefore+"|"+originalText+"/"),"") );
 	},
 	
 	_addToSelectedItems : function(item){
@@ -243,12 +255,12 @@ $.widget("smart-ui.combobox", {
 				item[self.options.valueField] = parseInt($(this).attr("value"));
 				item[self.options.textField] = $(this).text();
 				self._addToCombobox(self.options.textFormatter(item));
-				self._addToSelectedItems({value:item[self.options.valueField], text:self.options.textFormatter(item)});
+				self._addToSelectedItems({value:item[self.options.valueField],
+                        text:self.options.textFormatter(item)});
 				
 				self._trigger( "onSelect", null, {item: $(this)});
 			}
 		});
-		
 	},
 	
 	unSelect : function(values){
@@ -274,11 +286,21 @@ $.widget("smart-ui.combobox", {
 		this._selectedItems = [];
 		this.itemList.empty();
 		this.comboboxText.val("");
-		this._createItemList();
+		this.addItems(items);
 	},
 	
 	addItems : function(items){
-	
+
+        var liListStr = "";
+        for(var i=0; i<items.length; i++){
+            var liStr = [ "<li value='", items[i][this.options.valueField] , "' " , ">" ,
+                this.options.textFormatter(items[i])  , "</li>" ].join("");
+            liListStr += liStr;
+        }
+        $(liListStr).appendTo(this.itemList);
+
+        this.containerOfItemList.css({height:this._calculateItemListHeight()});
+
 	},
 	
 	removeItems : function(items){
@@ -290,7 +312,7 @@ $.widget("smart-ui.combobox", {
 		this._selectedItems = [];
 		this.itemList.empty();
 		this.comboboxText.val("");
-		this.itemListWrap.css({height:this._calculateItemListHeight()});
+		this.containerOfItemList.css({height:this._calculateItemListHeight()});
 	}
 	
 });
